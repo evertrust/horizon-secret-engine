@@ -1,0 +1,26 @@
+= Setup
+
+== Enabling 
+Enable the horizon secret engine: 
+[source, shell]
+----
+$ vault secrets enable -path=horizon horizon-secrets-engine
+----
+
+== Configure Vault
+Configure Vault with the proper plugin and connection
+[source, shell]
+----
+$ vault write horizon/config/<instance> \
+  horizon_endpoint="..." \
+  username="..." \
+  password="..."
+----
+Vault will use the user specified here to create/update/revoke horizon credentials. That user must have the appropriate permissions to perform actions upon other horizon users (create, update credentials, delete, etc.).
+
+== Rotate-root
+After configuring the root user, it is highly recommanded you rotate that user's password such that the vault user is not accessible by any users other than Vault itself:
+[source, shell]
+----
+$ vault write -force horizon/rotate-root/<instance>
+----
