@@ -71,6 +71,10 @@ func fieldsForType(roleType string) map[string]*framework.FieldSchema {
 			Type:        framework.TypeString,
 			Description: "Contact needed for the role assignement",
 		},
+		"credential_config": {
+			Type:        framework.TypeMap,
+			Description: "Password and Username policies",
+		},
 	}
 
 	for k, v := range dynamicFields() {
@@ -159,11 +163,11 @@ func (b *horizonBackend) pathRoleWrite(ctx context.Context, req *logical.Request
 
 	createOperation := (req.Operation == logical.CreateOperation)
 
-	var credentialConfig map[string]string
+	var credentialConfig map[string]interface{}
 	if raw, ok := d.GetOk("credential_config"); ok {
-		credentialConfig = raw.(map[string]string)
+		credentialConfig = raw.(map[string]interface{})
 	} else if req.Operation == logical.CreateOperation {
-		credentialConfig = d.Get("credential_config").(map[string]string)
+		credentialConfig = d.Get("credential_config").(map[string]interface{})
 	}
 	if err := roleEntry.setCredentialConfig(credentialConfig); err != nil {
 		return logical.ErrorResponse("credential_config validation failed: %s", err), nil
@@ -252,7 +256,7 @@ func (b *horizonBackend) getRole(ctx context.Context, s logical.Storage, name st
 // setCredentialConfig validates and sets the credential configuration
 // for the role using the role's credential type. It will also populate
 // all default values. Returns an error if the configuration is invalid.
-func (r *horizonRoleEntry) setCredentialConfig(config map[string]string) error {
+func (r *horizonRoleEntry) setCredentialConfig(config map[string]interface{}) error {
 	c := make(map[string]interface{})
 	for k, v := range config {
 		c[k] = v

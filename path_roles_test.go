@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	instance = "vault-plugin-testing"
-	// roleName   = "testhorizon"
+	instance   = "vault-plugin-testing"
 	testTTL    = int64(120)
 	testMaxTTL = int64(3600)
 )
@@ -24,10 +23,11 @@ func TestUserRole(t *testing.T) {
 			_, err := testCredsRoleCreate(t, b, s,
 				instance+strconv.Itoa(i),
 				map[string]interface{}{
-					"instance": instance,
-					"username": username,
-					"ttl":      testTTL,
-					"max_ttl":  testMaxTTL,
+					"instance":          instance,
+					"username":          username,
+					"ttl":               testTTL,
+					"max_ttl":           testMaxTTL,
+					"credential_config": map[string]interface{}{},
 				})
 			require.Nil(t, err)
 		}
@@ -39,10 +39,11 @@ func TestUserRole(t *testing.T) {
 
 	t.Run("Create User Role - pass", func(t *testing.T) {
 		resp, err := testCredsRoleCreate(t, b, s, instance, map[string]interface{}{
-			"instance": instance,
-			"username": username,
-			"ttl":      testTTL,
-			"max_ttl":  testMaxTTL,
+			"instance":          instance,
+			"username":          username,
+			"ttl":               testTTL,
+			"max_ttl":           testMaxTTL,
+			"credential_config": map[string]interface{}{},
 		})
 
 		require.Nil(t, err)
