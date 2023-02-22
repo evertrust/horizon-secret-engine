@@ -11,11 +11,12 @@ import (
 )
 
 type horizonRoleEntry struct {
-	Instance string        `json:"instance"`
-	Roles    []string      `json:"roles"`
-	Contact  string        `json:"contact"`
-	TTL      time.Duration `json:"ttl"`
-	MaxTTL   time.Duration `json:"max_ttl"`
+	Instance         string                 `json:"instance"`
+	Roles            []string               `json:"roles"`
+	Contact          string                 `json:"contact"`
+	TTL              time.Duration          `json:"ttl"`
+	MaxTTL           time.Duration          `json:"max_ttl"`
+	CredentialConfig map[string]interface{} `json:"credential_config"`
 }
 
 func pathListRoles(b *horizonBackend) []*framework.Path {
@@ -158,6 +159,16 @@ func (b *horizonBackend) pathRoleWrite(ctx context.Context, req *logical.Request
 
 	createOperation := (req.Operation == logical.CreateOperation)
 
+	var credentialConfig map[string]string
+	if raw, ok := d.GetOk("credential_config"); ok {
+		credentialConfig = raw.(map[string]string)
+	} else if req.Operation == logical.CreateOperation {
+		credentialConfig = d.Get("credential_config").(map[string]string)
+	}
+	if err := roleEntry.setCredentialConfig(credentialConfig); err != nil {
+		return logical.ErrorResponse("credential_config validation failed: %s", err), nil
+	}
+
 	if instance, ok := d.GetOk("instance"); ok {
 		roleEntry.Instance = instance.(string)
 	} else if !ok && createOperation {
@@ -236,6 +247,42 @@ func (b *horizonBackend) getRole(ctx context.Context, s logical.Storage, name st
 		return nil, err
 	}
 	return &role, nil
+}
+
+// setCredentialConfig validates and sets the credential configuration
+// for the role using the role's credential type. It will also populate
+// all default values. Returns an error if the configuration is invalid.
+func (r *horizonRoleEntry) setCredentialConfig(config map[string]string) error {
+	c := make(map[string]interface{})
+	for k, v := range config {
+		c[k] = v
+	}
+
+	pwGenerator, err := newPasswordGenerator(c)
+	if err != nil {
+		return err
+	}
+	cm1, err := pwGenerator.configMap()
+	if err != nil {
+		return err
+	}
+	if len(cm1) > 0 {
+		r.CredentialConfig = cm1
+	}
+
+	nameGenerator, err := newUsernameGenerator(c)
+	if err != nil {
+		return err
+	}
+	cm2, err := nameGenerator.configMap()
+	if err != nil {
+		return err
+	}
+	if len(cm2) > 0 {
+		r.CredentialConfig = cm2
+	}
+
+	return nil
 }
 
 const pathRoleHelpSyn = `

@@ -3,8 +3,9 @@ package horizonsecretsengine
 import (
 	"context"
 	"fmt"
+	"net/url"
 
-	horizonrightssdk "github.com/AdrienDucourthial/horizon-rights-sdk"
+	horizon "github.com/evertrust/horizon-go"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 )
@@ -50,31 +51,41 @@ func (b *horizonBackend) pathCredsCreateRead() framework.OperationFunc {
 
 		respData := make(map[string]interface{})
 
-		h := new(horizonrightssdk.HorizonRights)
-		h.Init(config.HorizonEndpoint, config.ConnectionDetails["username"].(string), config.ConnectionDetails["password"].(string))
+		endpoint, err := url.Parse(config.HorizonEndpoint)
+		if err != nil {
+			return nil, err
+		}
+		h := new(horizon.Horizon)
+		h.Init(*endpoint, config.ConnectionDetails["username"].(string), config.ConnectionDetails["password"].(string), "", "")
 
-		ug := newUsernameGenerator(config.UsernamePolicy)
+		ug, err := newUsernameGenerator(role.CredentialConfig)
+		if err != nil {
+			return nil, err
+		}
 		username, err := ug.generate(ctx, b)
 		if err != nil {
 			return nil, err
 		}
 
-		acc, err := h.Locals.Create(username, role.Contact)
+		acc, err := h.Local.Create(username, role.Contact)
 		if err != nil {
 			return nil, err
 		}
 
-		pg := newPasswordGenerator(config.PasswordPolicy)
+		pg, err := newPasswordGenerator(role.CredentialConfig)
+		if err != nil {
+			return nil, err
+		}
 		pwd, err := pg.generate(ctx, b)
 		if err != nil {
 			return nil, err
 		}
-		_, err = h.Locals.SetPassword(acc, pwd)
+		_, err = h.Local.SetPassword(acc, pwd)
 		if err != nil {
 			return nil, err
 		}
 
-		err = h.Locals.AssignRoles(acc, role.Contact, role.Roles)
+		err = h.Local.AssignRoles(acc, role.Contact, role.Roles)
 		if err != nil {
 			return nil, err
 		}

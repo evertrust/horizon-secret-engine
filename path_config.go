@@ -198,25 +198,6 @@ func (b *horizonBackend) pathConfigExistenceCheck() framework.ExistenceFunc {
 	}
 }
 
-func getConfig(ctx context.Context, s logical.Storage) (*horizonConfig, error) {
-	entry, err := s.Get(ctx, "config")
-	if err != nil {
-		return nil, err
-	}
-
-	if entry == nil {
-		return nil, nil
-	}
-
-	config := new(horizonConfig)
-	if err := entry.DecodeJSON(&config); err != nil {
-		return nil, fmt.Errorf("error reading root configuration: %w", err)
-	}
-
-	// return the config, we are done
-	return config, nil
-}
-
 func storeConfig(ctx context.Context, storage logical.Storage, instance string, config *horizonConfig) error {
 	entry, err := logical.StorageEntryJSON(fmt.Sprintf("config/%s", instance), config)
 	if err != nil {

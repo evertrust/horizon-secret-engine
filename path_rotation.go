@@ -3,8 +3,9 @@ package horizonsecretsengine
 import (
 	"context"
 	"fmt"
+	"net/url"
 
-	horizonrightssdk "github.com/AdrienDucourthial/horizon-rights-sdk"
+	horizon "github.com/evertrust/horizon-go"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 )
@@ -51,7 +52,7 @@ func (b *horizonBackend) pathRotateRootCredentialsUpdate() framework.OperationFu
 			return nil, fmt.Errorf("unable to rotate root credentials: no username in configuration")
 		}
 
-		generator := newPasswordGenerator("")
+		generator, err := newPasswordGenerator(nil)
 		if err != nil {
 			return nil, fmt.Errorf("failed to construct credential generator: %s", err)
 		}
@@ -65,13 +66,18 @@ func (b *horizonBackend) pathRotateRootCredentialsUpdate() framework.OperationFu
 		}
 		config.ConnectionDetails["password"] = newPassword
 
-		h := new(horizonrightssdk.HorizonRights)
-		h.Init(config.HorizonEndpoint, config.ConnectionDetails["username"].(string), oldPassword)
-		root, err := h.Locals.GetAccount(rootUsername)
+		endpoint, err := url.Parse(config.HorizonEndpoint)
 		if err != nil {
 			return nil, err
 		}
-		h.Locals.SetPassword(root, newPassword)
+
+		h := new(horizon.Horizon)
+		h.Init(*endpoint, config.ConnectionDetails["username"].(string), oldPassword, "", "")
+		root, err := h.Local.GetAccount(rootUsername)
+		if err != nil {
+			return nil, err
+		}
+		h.Local.SetPassword(root, newPassword)
 
 		err = storeConfig(ctx, req.Storage, name, config)
 		if err != nil {

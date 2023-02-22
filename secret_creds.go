@@ -3,8 +3,9 @@ package horizonsecretsengine
 import (
 	"context"
 	"fmt"
+	"net/url"
 
-	horizonrightssdk "github.com/AdrienDucourthial/horizon-rights-sdk"
+	horizon "github.com/evertrust/horizon-go"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 )
@@ -49,10 +50,15 @@ func (b *horizonBackend) secretCredsRenew() framework.OperationFunc {
 			return nil, err
 		}
 
-		h := new(horizonrightssdk.HorizonRights)
-		h.Init(config.HorizonEndpoint, config.ConnectionDetails["username"].(string), config.ConnectionDetails["password"].(string))
+		endpoint, err := url.Parse(config.HorizonEndpoint)
+		if err != nil {
+			return nil, err
+		}
 
-		h.Locals.Create(username, role.Contact)
+		h := new(horizon.Horizon)
+		h.Init(*endpoint, config.ConnectionDetails["username"].(string), config.ConnectionDetails["password"].(string), "", "")
+
+		h.Local.Create(username, role.Contact)
 
 		resp := &logical.Response{Secret: req.Secret}
 		resp.Secret.TTL = role.TTL
@@ -89,14 +95,19 @@ func (b *horizonBackend) secretCredsRevoke() framework.OperationFunc {
 			return nil, err
 		}
 
-		h := new(horizonrightssdk.HorizonRights)
-		h.Init(config.HorizonEndpoint, config.ConnectionDetails["username"].(string), config.ConnectionDetails["password"].(string))
-		acc, err := h.Locals.GetAccount(username)
+		endpoint, err := url.Parse(config.HorizonEndpoint)
 		if err != nil {
 			return nil, err
 		}
 
-		err = h.Locals.Delete(acc)
+		h := new(horizon.Horizon)
+		h.Init(*endpoint, config.ConnectionDetails["username"].(string), config.ConnectionDetails["password"].(string), "", "")
+		acc, err := h.Local.GetAccount(username)
+		if err != nil {
+			return nil, err
+		}
+
+		err = h.Local.Delete(acc)
 		if err != nil {
 			return nil, err
 		}

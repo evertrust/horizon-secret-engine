@@ -18,11 +18,13 @@ type passwordGenerator struct {
 // newPasswordGenerator returns a new passwordGenerator using the given config.
 // Default values will be set on the returned passwordGenerator if not provided
 // in the config.
-func newPasswordGenerator(pwdPolicy string) passwordGenerator {
+func newPasswordGenerator(config map[string]interface{}) (passwordGenerator, error) {
 	var pg passwordGenerator
-	pg.PasswordPolicy = pwdPolicy
+	if err := mapstructure.WeakDecode(config, &pg); err != nil {
+		return pg, err
+	}
 
-	return pg
+	return pg, nil
 }
 
 // Generate generates a password credential using the configured password policy.
@@ -48,11 +50,13 @@ type usernameGenerator struct {
 	UsernamePolicy string `mapstructure:"username_policy,omitempty"`
 }
 
-func newUsernameGenerator(uPolicy string) usernameGenerator {
+func newUsernameGenerator(config map[string]interface{}) (usernameGenerator, error) {
 	var ug usernameGenerator
-	ug.UsernamePolicy = uPolicy
+	if err := mapstructure.WeakDecode(config, &ug); err != nil {
+		return ug, err
+	}
 
-	return ug
+	return ug, nil
 }
 
 func (ug usernameGenerator) generate(ctx context.Context, b *horizonBackend) (string, error) {

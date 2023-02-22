@@ -7,11 +7,9 @@ import (
 	"sync"
 	"time"
 
-	horizon "github.com/AdrienDucourthial/horizon-rights-sdk"
+	horizon "github.com/evertrust/horizon-go"
 	"github.com/hashicorp/vault/sdk/framework"
-	"github.com/hashicorp/vault/sdk/helper/locksutil"
 	"github.com/hashicorp/vault/sdk/logical"
-	"github.com/hashicorp/vault/sdk/queue"
 )
 
 const (
@@ -32,18 +30,7 @@ func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend,
 type horizonBackend struct {
 	*framework.Backend
 	lock   sync.RWMutex
-	client *horizon.HorizonRights
-	// roleLocks is used to lock modifications to roles in the queue, to ensure
-	// concurrent requests are not modifying the same role and possibly causing
-	// issues with the priority queue.
-	roleLocks []*locksutil.LockEntry
-	// queueCtx is the context for the priority queue
-	queueCtx context.Context
-	// credRotationQueue is an in-memory priority queue used to track Static Roles
-	// that require periodic rotation. Backends will have a PriorityQueue
-	// initialized on setup, but only backends that are mounted by a primary
-	// server or mounted as a local mount will perform the rotations.
-	credRotationQueue *queue.PriorityQueue
+	client *horizon.Horizon
 }
 
 func backend() *horizonBackend {
