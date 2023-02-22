@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	horizon "github.com/EverTrust/horizon-secrets-engine"
+	horizon "github.com/EverTrust/horizon-secret-engine"
 	hclog "github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/vault/api"
 	"github.com/hashicorp/vault/sdk/plugin"

@@ -1,4 +1,4 @@
-module github.com/EverTrust/horizon-secrets-engine
+module github.com/EverTrust/horizon-secret-engine
 
 go 1.19
 
