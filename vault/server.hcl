@@ -1,10 +1,9 @@
-plugin_directory = "/Users/adrien/Documents/horizon-secrets-engine/vault/plugins"
-api_addr         = "http://localhost:9000"
+plugin_directory = "$(pwd)/vault/plugins"
+api_addr         = "http://127.0.0.1:8200"
 
 storage "inmem" {}
 
-listener "tcp" { 
-  address     = "localhost:9000"
+listener "tcp" {
+  address     = "127.0.0.1:8200"
   tls_disable = "true"
 }
-
