@@ -3,13 +3,14 @@ module github.com/evertrust/horizon-secret-engine
 go 1.19
 
 require (
-	github.com/evertrust/horizon-go v0.0.5-0.20230222124054-fd84dd5f4f0b
+	github.com/evertrust/horizon-go v0.0.5-0.20230306133255-8a02375e5e06
 	github.com/hashicorp/vault/sdk v0.6.2
 )
 
 require (
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/go-resty/resty/v2 v2.7.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect

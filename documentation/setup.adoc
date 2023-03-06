@@ -1,5 +1,43 @@
 = Setup
 
+== Register horizon-secrets-engine in plugin catalog
+Start server with the right config setup in `vault/server.hcl`. 
+[source, shell]
+----
+$ vault server -config=vault/server.hcl
+----
+
+Initialize vault to get the 5 unseal keys and the root Token.
+[source, shell]
+----
+$ vault operator init
+----
+
+Unseal vault with 3 of the unseal keys.
+[source, shell]
+----
+$ vault operator unseal
+----
+
+Log in to vault with the root Token.
+[source, shell]
+----
+$ vault login
+----
+
+Calculate the SHA256 sum of the compiled plugin binary.
+[source, shell]
+----
+$ SHA256=$(shasum -a 256 /Path/to/vault/plugins/horizon-secrets-engine | cut -d ' ' -f1)
+----
+
+Register the plugin
+[source, shell]
+----
+$ vault plugin register -sha256=$SHA256 secret horizon-secrets-engine
+----
+
+
 == Enabling 
 Enable the horizon secret engine: 
 [source, shell]
